@@ -13,7 +13,7 @@
 [![GitHub Stars](https://img.shields.io/github/stars/MonicAuditya/Fundamentals-of-Machine-Learning?style=for-the-badge&logo=github&color=yellow)](https://github.com/MonicAuditya/Fundamentals-of-Machine-Learning/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/MonicAuditya/Fundamentals-of-Machine-Learning?style=for-the-badge&logo=github&color=blue)](https://github.com/MonicAuditya/Fundamentals-of-Machine-Learning/network/members)
 [![GitHub Issues](https://img.shields.io/github/issues/MonicAuditya/Fundamentals-of-Machine-Learning?style=for-the-badge&logo=github&color=red)](https://github.com/MonicAuditya/Fundamentals-of-Machine-Learning/issues)
-[![GitHub License](https://img.shields.io/github/license/MonicAuditya/Fundamentals-of-Machine-Learning?style=for-the-badge)](LICENSE)
+![GitHub License](https://img.shields.io/github/license/MonicAuditya/Fundamentals-of-Machine-Learning?style=for-the-badge)
 
 </div>
 
@@ -220,7 +220,7 @@ Contributions are welcome! If you'd like to contribute to this educational repos
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+For details on our code of conduct and the process for submitting pull requests, please open an issue or contact the maintainer.
 
 ## 📚 Additional Resources
 
