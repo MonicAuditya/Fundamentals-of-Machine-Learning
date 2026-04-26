@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Haya Project Summary</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 22mm 18mm;
+    }
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: #1e2430;
+      line-height: 1.5;
+      font-size: 11.5pt;
+      margin: 0;
+    }
+    h1, h2, h3 {
+      color: #15233b;
+      margin-bottom: 0.35em;
+    }
+    h1 {
+      font-size: 24pt;
+      border-bottom: 3px solid #5c7cfa;
+      padding-bottom: 10px;
+      margin-top: 0;
+    }
+    h2 {
+      font-size: 16pt;
+      margin-top: 1.4em;
+      border-left: 4px solid #91a7ff;
+      padding-left: 10px;
+    }
+    h3 {
+      font-size: 12.5pt;
+      margin-top: 1em;
+    }
+    p {
+      margin: 0.45em 0;
+    }
+    ul {
+      margin: 0.35em 0 0.7em 1.2em;
+      padding: 0;
+    }
+    li {
+      margin: 0.2em 0;
+    }
+    .hero {
+      background: linear-gradient(135deg, #eef2ff 0%, #f8f9fa 100%);
+      border: 1px solid #dbe4ff;
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin: 0 0 18px 0;
+    }
+    .meta {
+      color: #495057;
+      font-size: 10pt;
+    }
+    .callout {
+      background: #f8f9fa;
+      border-left: 4px solid #5c7cfa;
+      padding: 10px 12px;
+      margin: 10px 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 16px 0;
+      font-size: 10.5pt;
+    }
+    th, td {
+      border: 1px solid #d0d7de;
+      padding: 8px 9px;
+      vertical-align: top;
+      text-align: left;
+    }
+    th {
+      background: #eef2ff;
+    }
+    code {
+      font-family: Consolas, "Courier New", monospace;
+      background: #f1f3f5;
+      padding: 1px 4px;
+      border-radius: 4px;
+      font-size: 0.95em;
+    }
+  </style>
+</head>
+<body>
+  <h1>Haya Project Summary</h1>
+
+  <div class="hero">
+    <p><strong>Project identity:</strong> Haya is an Android application for running GGUF language models directly on-device, without depending on a remote inference backend for the core chat experience.</p>
+    <p><strong>Primary goal:</strong> make local large-language-model interaction practical on Android phones by combining a native inference layer, a Kotlin/Compose app shell, and a model discovery/download workflow.</p>
+    <p class="meta"><strong>Workspace:</strong> <code>E:\Haya\haya</code> | <strong>Report date:</strong> 2026-04-09</p>
+  </div>
+
+  <h2>1. High-Level Idea</h2>
+  <p>This project is essentially a mobile local-AI client. Instead of sending prompts to a cloud API for every response, it allows the user to import or download a GGUF model and execute inference locally on the Android device itself. The design combines three major concerns:</p>
+  <ul>
+    <li><strong>Model execution:</strong> native inference through <code>llama.cpp</code> wrapped by the internal <code>redhat1406</code> module.</li>
+    <li><strong>User interaction:</strong> a Compose-based chat interface with streaming responses, model switching, and chat history.</li>
+    <li><strong>Model management:</strong> a discovery/recommendation/download layer for browsing runnable Hugging Face GGUF models and selecting the right one for the current device.</li>
+  </ul>
+  <p>In plain terms, Haya behaves like a local ChatGPT-style assistant for Android, but the model lives on the phone and the runtime is tuned around device capability, memory limits, and native library compatibility.</p>
+
+  <h2>2. Core Product Flow</h2>
+  <p>The main user journey is straightforward:</p>
+  <ol>
+    <li>The app starts and checks whether a local GGUF model is already available.</li>
+    <li>If no model is active, the user can browse/download a compatible model or import one manually.</li>
+    <li>The app validates the GGUF file, copies or stores it locally, and loads it through the native runtime.</li>
+    <li>The user opens chat, sends a prompt, and the app streams generated tokens into the chat UI.</li>
+    <li>The user can stop generation mid-response, switch to another model, or continue the conversation with preserved history.</li>
+  </ol>
+  <div class="callout">
+    <strong>Important product choice:</strong> Haya is designed around <em>offline-first</em> inference. Network access is used mainly for model discovery and download, not for the main conversational response path.
+  </div>
+
+  <h2>3. Architecture Overview</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Layer</th>
+        <th>Role</th>
+        <th>Main Technologies</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>UI layer</td>
+        <td>Chat interface, model hub, navigation drawer, state presentation</td>
+        <td>Kotlin, Jetpack Compose, Material 3</td>
+      </tr>
+      <tr>
+        <td>ViewModel / presentation logic</td>
+        <td>Coordinates chat state, downloads, recommendations, and model activation</td>
+        <td>ViewModel, StateFlow, coroutines</td>
+      </tr>
+      <tr>
+        <td>Domain layer</td>
+        <td>Model validation, model loading, streaming generation, stop/unload behavior</td>
+        <td>Kotlin coroutines, flow, synchronization primitives</td>
+      </tr>
+      <tr>
+        <td>Data layer</td>
+        <td>Chat persistence, local model metadata, preferences, HF API access</td>
+        <td>Room, shared preferences, helper APIs</td>
+      </tr>
+      <tr>
+        <td>Native inference layer</td>
+        <td>Loads GGUF models and generates tokens efficiently on-device</td>
+        <td><code>redhat1406</code>, JNI, C++, <code>llama.cpp</code></td>
+      </tr>
+      <tr>
+        <td>External model/tooling layer</td>
+        <td>Model metadata, browsing, and file downloads</td>
+        <td>Hugging Face APIs, GGUF file mapping, download manager</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>4. Major Modules</h2>
+
+  <h3><code>app/</code> Android application module</h3>
+  <p>This is the user-facing app. It contains the Compose UI, ViewModels, Room database entities and DAOs, domain logic for chat/model loading, and coordination with the model hub.</p>
+  <ul>
+    <li><strong>Main entry:</strong> <code>MainActivity.kt</code></li>
+    <li><strong>Main screens:</strong> chat screen, model hub screen, general settings placeholder</li>
+    <li><strong>State management:</strong> <code>ChatViewModel</code> and <code>ModelHubViewModel</code></li>
+    <li><strong>Persistence:</strong> chat history and model metadata via Room</li>
+  </ul>
+
+  <h3><code>redhat1406/</code> Native LLM wrapper module</h3>
+  <p>This module is the local inference bridge. It decides which native library variant to load depending on CPU capabilities and ABI, reads GGUF metadata, exposes Kotlin methods such as <code>load</code>, <code>getResponseAsFlow</code>, <code>benchModel</code>, and handles generation stop requests.</p>
+  <ul>
+    <li><strong>Kotlin façade:</strong> <code>RedHat1406.kt</code></li>
+    <li><strong>GGUF metadata reader:</strong> <code>GGUFReader.kt</code> plus JNI bindings</li>
+    <li><strong>Native backend:</strong> C++ + JNI + <code>llama.cpp</code></li>
+    <li><strong>Optimization logic:</strong> different ARM-specific native libraries for device-specific performance</li>
+  </ul>
+
+  <h3><code>hf-model-hub-api/</code> Hugging Face helper module</h3>
+  <p>This module handles model search, metadata lookups, and repository tree exploration so the app can identify downloadable GGUF variants and display them in the model hub UI.</p>
+
+  <h3><code>llama.cpp/</code> Upstream inference engine submodule</h3>
+  <p>This is the third-party core inference project used by the native layer. It provides the underlying GGUF model loading and token generation machinery. Haya does not reimplement inference from scratch; it builds on this upstream engine.</p>
+
+  <h2>5. User Experience Design</h2>
+  <p>The UI is organized around two primary experiences:</p>
+  <ul>
+    <li><strong>Model Hub:</strong> discover models, inspect recommendations, download a model, and activate it.</li>
+    <li><strong>Chat:</strong> conduct a conversation using the currently active local model.</li>
+  </ul>
+  <p>The app also includes a sidebar/navigation drawer for switching between model settings, general settings, and chat history. The chat experience is intentionally simplified so the key workflow stays focused: load a model, ask a question, get a streamed response.</p>
+
+  <h2>6. Chat System Details</h2>
+  <p>The chat subsystem is built to behave like a modern streaming assistant:</p>
+  <ul>
+    <li>User messages are persisted in the local database.</li>
+    <li>Assistant responses stream token-by-token into the UI.</li>
+    <li>Current streaming text is stored separately from persisted message history.</li>
+    <li>A stop action can interrupt generation while preserving already generated partial output.</li>
+    <li>Chat titles are auto-derived from the first user message when the conversation is still untitled.</li>
+  </ul>
+  <p>The recent fix in this workspace addressed an important UX bug where partial streamed text disappeared after pressing Stop. The current behavior preserves the partial response in UI state immediately and also stores it in the database.</p>
+
+  <h2>7. Model Handling and Safety Logic</h2>
+  <p>One of the more thoughtful parts of the project is its attempt to protect the phone from loading a model that is too heavy for available memory.</p>
+  <ul>
+    <li>The app validates that the selected file is a non-empty GGUF file.</li>
+    <li>It estimates runtime memory requirements based on file size.</li>
+    <li>It computes a safe RAM budget from the device profile.</li>
+    <li>If the model appears too large, the app blocks the load rather than risking a crash or device instability.</li>
+    <li>Previously loaded models can be re-opened on startup.</li>
+  </ul>
+  <p>This makes the app more practical for real phones, where RAM pressure is one of the biggest constraints for local LLM execution.</p>
+
+  <h2>8. Recommendation and Browsing System</h2>
+  <p>The model recommendation system is more advanced than a simple list of downloads. It tries to match models to both the <em>device</em> and the <em>user’s intended use case</em>.</p>
+  <p>Inputs include:</p>
+  <ul>
+    <li>device memory and CPU capability</li>
+    <li>model family, quantization, and estimated parameter count</li>
+    <li>use case preference such as coding, general chat, or mixed use</li>
+    <li>download counts and recency signals</li>
+  </ul>
+  <p>Outputs include:</p>
+  <ul>
+    <li>a ranked recommendation list</li>
+    <li>featured picks such as recommended, fastest, and highest quality</li>
+    <li>support estimation and warnings for risky/heavy models</li>
+  </ul>
+  <p>This is a strong product idea because it reduces friction for non-expert users: instead of forcing them to guess which GGUF model their phone can handle, the app helps them choose one intelligently.</p>
+
+  <h2>9. Native Performance Strategy</h2>
+  <p>The native layer does not rely on a single generic shared library. Instead, it contains multiple prebuilt variants designed for different ARM feature sets:</p>
+  <ul>
+    <li>baseline ARM64</li>
+    <li>ARMv8.2 with FP16</li>
+    <li>ARMv8.2 with FP16 + dot product</li>
+    <li>ARMv8.4 variants with SVE and/or i8mm where supported</li>
+    <li>a 32-bit ARMv7 path</li>
+  </ul>
+  <p>At runtime, the app inspects CPU features from <code>/proc/cpuinfo</code> and picks the best matching native library. This is a meaningful optimization because on-device inference performance can vary significantly depending on whether the hardware supports vector instructions, dot-product extensions, and half precision acceleration.</p>
+
+  <h2>10. Persistence and Local Data Model</h2>
+  <p>The Room database stores:</p>
+  <ul>
+    <li><strong>Chats:</strong> title, system prompt, timestamps, model association, context settings</li>
+    <li><strong>Chat messages:</strong> user/assistant messages per chat</li>
+    <li><strong>Models:</strong> saved metadata for downloaded or imported models</li>
+    <li><strong>Tasks/Folders:</strong> supporting structures for broader app organization</li>
+  </ul>
+  <p>Shared preferences store active model identity and preference/onboarding state for recommendation behavior.</p>
+
+  <h2>11. Technical Strengths</h2>
+  <ul>
+    <li><strong>Clear product direction:</strong> local AI assistant on Android with real GGUF execution.</li>
+    <li><strong>Practical architecture:</strong> Kotlin app layer cleanly separated from native inference layer.</li>
+    <li><strong>Good UX ambition:</strong> recommendation system reduces model-selection friction.</li>
+    <li><strong>Performance awareness:</strong> ABI and CPU feature-based loading show mobile optimization thinking.</li>
+    <li><strong>Offline-first value proposition:</strong> user privacy and local availability are central advantages.</li>
+  </ul>
+
+  <h2>12. Current Constraints and Weak Spots</h2>
+  <ul>
+    <li>The project still carries substantial native weight because <code>llama.cpp</code> and related shared libraries are large.</li>
+    <li>The app is simplified relative to a full production assistant, so some settings and broader management flows are still minimal or placeholder.</li>
+    <li>There are build-time warnings around KSP/Kotlin version alignment and Room schema export configuration.</li>
+    <li>The project depends on correct submodule initialization for <code>llama.cpp</code>.</li>
+    <li>On-device inference is inherently constrained by RAM, thermal limits, and storage speed on lower-end devices.</li>
+  </ul>
+
+  <h2>13. What This Project Demonstrates</h2>
+  <p>From an engineering and academic perspective, Haya demonstrates a meaningful combination of mobile engineering, native integration, model-management logic, and UI/UX problem-solving.</p>
+  <p>It is not just “an Android app that calls an AI API.” Instead, it tackles:</p>
+  <ul>
+    <li>embedding a real local inference runtime</li>
+    <li>mobile memory-aware model gating</li>
+    <li>device-adaptive model recommendation</li>
+    <li>streaming token UX</li>
+    <li>local-first persistence and conversation management</li>
+  </ul>
+  <p>That makes it a solid project concept for demonstrating how edge AI can be packaged into a user-facing Android application.</p>
+
+  <h2>14. Suggested One-Paragraph Executive Summary</h2>
+  <p>Haya is an offline-first Android application that enables users to run GGUF language models locally on their phones. The project combines a Jetpack Compose front end, Room-based local persistence, a Hugging Face-powered model discovery and recommendation layer, and a native JNI/C++ inference wrapper built on top of <code>llama.cpp</code>. Its main value lies in making local mobile AI usable: users can import or download a compatible model, load it on-device, chat with it in a streaming interface, and rely on built-in device-aware checks to avoid loading models that are too heavy for their hardware.</p>
+
+  <h2>15. Conclusion</h2>
+  <p>Overall, this project is a mobile local-LLM platform focused on practical Android deployment. Its strongest idea is the pairing of native on-device inference with a device-aware recommendation and model-management experience. In short, Haya is aiming to make private, offline, phone-native AI interaction both technically feasible and user-friendly.</p>
+</body>
+</html>
